@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='pal.png') }}">
+  <title>Student Resources</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    .dashboard {
+  max-width: 1000px;
+  margin: 30px auto;
+  padding: 0 20px;
+  
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.resources-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  width: 100%;
+}
+
+.resource-card {
+  flex: 1 1 calc(25% - 15px);
+  min-width: 200px;
+  background-color: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  margin-bottom: 30px;
+  box-sizing: border-box;
+}
+
+.resource-card h2 {
+  margin-top: 0;
+  color: #c0392b;
+}
+
+.red-btn {
+  background-color: #c0392b;
+  color: white;
+  text-decoration: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+.red-btn:hover {
+  background-color: #a93228;
+}
+footer{
+  text-align: center;
+    padding: 20px;
+    background: #f0f0f0;
+    font-size: 14px;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Resources</h1>
+    <nav>
+      <ul>
+        <li><a href="{{ url_for('dashboard') }}">Home</a></li>
+        <li><a href="{{ url_for('student_resources') }}">Resources</a></li>
+        <li><a href="{{ url_for('attendance') }}">Attendance</a></li>
+        <li><a href="{{ url_for('student_graduation') }}">Graduation</a></li>
+        <li><a href="{{ url_for('logout') }}" class="logout">Logout</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="profile">
+    <img src="{{ url_for('static', filename='Blank Pfp.jpeg') }}" alt="Profile Photo" />
+    <div class="details">
+      <h2>Welcome, {{ user.name }}</h2>
+      <p><strong>Course:</strong> {{ user.course }}</p>
+      <p><strong>Cohort:</strong> {{ user.cohort }}</p>
+      <p><strong>Email:</strong> {{ user.email }}</p>
+    </div>
+  </section>
+
+  <main class="dashboard">
+    {% if resources %}
+      {% for resource in resources %}
+        <section class="card">
+          <h2>{{ resource.title }}</h2>
+          <p><strong>Type:</strong> {{ resource.type }}</p>
+          <p><strong>Course:</strong> {{ resource.course }} | <strong>Cohort:</strong> {{ resource.cohort }}</p>
+          <a href="{{ resource.link }}" target="_blank" class="red-btn">Access Resource</a>
+        </section>
+      {% endfor %}
+    {% else %}
+      <section class="card">
+        <p style="text-align: center;">No resources available for your course and cohort.</p>
+      </section>
+    {% endif %}
+     <!-- Preddy AI Assistant -->
+<div id="preddy-button" onclick="togglePreddy()">🤖 Talk to Preddy</div>
+
+<div id="preddy-chat" class="hidden">
+  <div class="preddy-header">💬 Preddy • Your Portal Guide</div>
+  <div id="preddy-messages" class="preddy-messages"></div>
+  <input id="preddy-input" type="text" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')sendPreddyMessage()">
+</div>
+
+<style>
+#preddy-button {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  padding: 14px 22px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  transition: all 0.25s ease;
+  border: none;
+}
+
+#preddy-button:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+#preddy-chat {
+  position: fixed;
+  bottom: 100px;
+  right: 24px;
+  width: 360px;
+  max-height: 550px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  border: 1px solid #ddd;
+}
+
+#preddy-chat.hidden {
+  display: none;
+}
+
+.preddy-header {
+  background: #b6382a;
+  color: #fff;
+  padding: 16px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  text-align: center;
+  border-bottom: 1px solid #a33025;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.preddy-messages {
+  padding: 14px;
+  flex-grow: 1;
+  overflow-y: auto;
+  font-size: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.preddy-bubble {
+  background: #f4f4f4;
+  border-radius: 14px;
+  padding: 10px 14px;
+  max-width: 80%;
+  word-wrap: break-word;
+  line-height: 1.4;
+}
+
+.preddy-bubble.user {
+  align-self: flex-end;
+  background: #fde3cf;
+}
+
+.preddy-bubble.ai {
+  align-self: flex-start;
+  background: #fdf4dd;
+}
+
+#preddy-input {
+  border: none;
+  border-top: 1px solid #eee;
+  padding: 14px;
+  font-size: 1rem;
+  outline: none;
+  width: 100%;
+  font-family: 'Segoe UI', sans-serif;
+  background: #fff;
+}
+</style>
+
+
+<script>
+function togglePreddy() {
+  const chat = document.getElementById('preddy-chat');
+  chat.classList.toggle('hidden');
+}
+
+function sendPreddyMessage() {
+  const input = document.getElementById('preddy-input');
+  const message = input.value.trim();
+  if (!message) return;
+
+  const messages = document.getElementById('preddy-messages');
+  messages.innerHTML += `<div class="preddy-bubble user"><b>You:</b> ${message}</div>`;
+  input.value = '';
+  messages.scrollTop = messages.scrollHeight;
+
+  fetch("/ai-assistant", {
+    method: "POST",
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ message })
+  })
+  .then(res => res.json())
+  .then(data => {
+    messages.innerHTML += `<div class="preddy-bubble ai"><b>Preddy:</b> ${data.reply}</div>`;
+    messages.scrollTop = messages.scrollHeight;
+  })
+  .catch(() => {
+    messages.innerHTML += `<div style="color:red;" class="preddy-bubble ai">⚠️ Error contacting Preddy.</div>`;
+  });
+}
+</script>
+  </main>
+
+  <footer >
+    <p>&copy; 2025 Predictive Analytics Lab</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='pal.png') }}">
+  <title>Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans&display=swap" rel="stylesheet" />
+  <style>
+    
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh; 
+      font-family: 'Public Sans', sans-serif;
+      margin: 0;
+      background: #f7f9fc;
+    }
+
+    /* Header styles */
+    header {
+      background-color: #c0392b;
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      margin-left: 20px;
+    }
+
+    
+    main.dashboard {
+      flex: 1; 
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    /* Card styles */
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 260px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+    .card h2 {
+      color: #c0392b;
+      font-size: 2.2rem;
+      margin: 0;
+    }
+    .card p {
+      margin-top: 10px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+      background: #f0f0f0;
+      
+    }
+
+    
+    @media (max-width: 900px) {
+      main.dashboard {
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+      }
+      .card {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Admin Dashboard</h1>
+    <nav>
+      <a href="{{ url_for('manage_students') }}">Students</a>
+      <a href="{{ url_for('admin_attendance') }}">Attendance</a>
+      <a href="{{ url_for('manage_graduation') }}">Graduation</a>
+      <a href="{{ url_for('manage_resources') }}">Resources</a>
+      <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+  </header>
+
+  <main class="dashboard">
+    <div class="card">
+      <h2>{{ total_students }}</h2>
+      <p>Total Students</p>
+    </div>
+    <div class="card">
+      <h2>{{ avg_attendance }}%</h2>
+      <p>Avg Attendance</p>
+    </div>
+    <div class="card">
+      <h2>{{ graduation_count }}</h2>
+      <p>Registered for Graduation</p>
+    </div>
+    <div class="card">
+      <h2>{{ resource_count }}</h2>
+      <p>Uploaded Resources</p>
+    </div>
+  </main>
+
+
+  <footer>
+    &copy; 2025 Predictive Analytics Lab. All rights reserved.
+  </footer>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='pal.png') }}">
+  <title>Manage Attendance</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}" />
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Public Sans', sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #d64541;
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+    nav a {
+      color: #fff;
+      margin-left: 1.2rem;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    main {
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .flex-container {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    .section {
+      background-color: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      flex: 1 1 45%;
+    }
+    .section h2 {
+      font-size: 1.8rem;
+      color: #d64541;
+      margin-top: 0;
+    }
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    input[type="date"], input[type="datetime-local"], select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: 'Public Sans', sans-serif;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    .submit-btn {
+      background-color: #d64541;
+      color: #fff;
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+    .submit-btn:hover {
+      background-color: #b7373d;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #f1f1f1;
+      font-weight: 600;
+    }
+    .present {
+      color: #2ecc71;
+      font-weight: bold;
+    }
+    .absent {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+    @media(max-width: 768px) {
+      main {
+        padding: 1rem;
+      }
+      .flex-container {
+        flex-direction: column;
+      }
+    }
+    footer {
+      text-align: center;
+      padding: 1rem 0;
+      background-color: #2c3e50;
+      color: #fff;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Admin Attendance Manager</h1>
+    <nav>
+      <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('manage_students') }}">Students</a>
+      <a href="{{ url_for('manage_graduation') }}">Graduation</a>
+      <a href="{{ url_for('manage_resources') }}">Resources</a>
+      <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="flex-container">
+
+      <!-- Course and Cohort Filtering Form -->
+      <section class="section">
+        <h2>Select Course & Cohort</h2>
+        <form method="GET" action="{{ url_for('admin_attendance') }}">
+          <div class="form-group">
+            <label for="course">Course</label>
+            <select name="course" onchange="this.form.submit()">
+              <option value="">-- Select Course --</option>
+              {% for course in courses %}
+                <option value="{{ course }}" {% if selected_course == course %}selected{% endif %}>{{ course }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          {% if selected_course %}
+          <div class="form-group">
+            <label for="cohort">Cohort</label>
+            <select name="cohort" onchange="this.form.submit()">
+              <option value="">-- Select Cohort --</option>
+              {% for cohort in cohorts %}
+                <option value="{{ cohort }}" {% if selected_cohort == cohort %}selected{% endif %}>{{ cohort }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+        </form>
+
+        {% if students %}
+        <!-- Attendance Form -->
+        <form method="POST" action="{{ url_for('admin_attendance') }}">
+          <input type="hidden" name="course" value="{{ selected_course }}">
+          <input type="hidden" name="cohort" value="{{ selected_cohort }}">
+
+          <div class="form-group">
+            <label for="student_id">Student</label>
+            <select name="student_id" required>
+              <option value="">-- Select Student --</option>
+              {% for student in students %}
+                <option value="{{ student.id }}">{{ student.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="date">Date</label>
+            <input type="date" name="date" required />
+          </div>
+
+          <div class="form-group">
+            <label for="status">Status</label>
+            <select name="status" required>
+              <option value="">-- Select Status --</option>
+              <option value="Present">Present</option>
+              <option value="Absent">Absent</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="next_class">Next Class Date/Time</label>
+            <input type="datetime-local" name="next_class" required />
+          </div>
+
+          <button type="submit" class="submit-btn">Save Attendance</button>
+        </form>
+        {% endif %}
+      </section>
+
+      <!-- Attendance Records -->
+      <section class="section">
+        <h2>Recent Attendance Records</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for record in attendance_records %}
+            <tr>
+              <td>{{ record.student.name }}</td>
+              <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
+              <td class="{{ 'absent' if record.status == 'Absent' else 'present' }}">{{ record.status }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 Predictive Analytics Lab
+  </footer>
+</body>
+</html>

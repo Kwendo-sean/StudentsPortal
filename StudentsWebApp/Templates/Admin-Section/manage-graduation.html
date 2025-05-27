@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='pal.png') }}">
+  <title>Admin - Graduation Management</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Public Sans', sans-serif;
+      margin: 0;
+      background-color: #f7f9fc;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .wrapper {
+      flex: 1;
+      padding-bottom: 20px;
+    }
+
+    header {
+      background-color: #c0392b;
+      color: white;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .dashboard {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      padding: 40px 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      width: 100%;
+      max-width: 500px;
+      box-sizing: border-box;
+    }
+
+    h2 {
+      color: #c0392b;
+      margin-top: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      display: block;
+      overflow-x: auto;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      white-space: nowrap;
+    }
+
+    th {
+      color: #c0392b;
+      font-weight: 600;
+    }
+
+    select, input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .submit-btn {
+      background-color: #c0392b;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+    }
+
+    .submit-btn:hover {
+      background-color: #a93228;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: #f0f0f0;
+      font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+    <header>
+      <h1>Graduation Management</h1>
+      <nav>
+        <ul>
+          <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+          <li><a href="{{ url_for('manage_students') }}">Students</a></li>
+          <li><a href="{{ url_for('admin_attendance') }}">Attendance</a></li>
+          <li><a href="{{ url_for('manage_resources') }}">Resources</a></li>
+          <li><a href="{{ url_for('logout') }}">Logout</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="dashboard">
+
+      <!-- Registered Students -->
+      <section class="card">
+        <h2>Registered for Graduation</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Course</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% set found = false %}
+            {% for student in students if student.graduation_status == 'Registered' %}
+              {% set found = true %}
+              <tr>
+                <td>{{ student.name }}</td>
+                <td>{{ student.email }}</td>
+                <td>{{ student.course }}</td>
+                <td>{{ student.graduation_status }}</td>
+              </tr>
+            {% endfor %}
+            {% if not found %}
+              <tr><td colspan="4" style="text-align:center;">No registered students found.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Mark as Graduated -->
+      <section class="card">
+        <h2>Mark as Graduated</h2>
+        <form method="POST" action="{{ url_for('manage_graduation') }}">
+          <label for="student_id">Select Student:</label>
+          <select name="student_id" required>
+            <option value="">-- Select Student --</option>
+            {% for student in students if student.graduation_status != 'Graduated' %}
+              <option value="{{ student.id }}">{{ student.name }} ({{ student.course }})</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="submit-btn">Mark as Graduated</button>
+        </form>
+      </section>
+
+      <!-- Set Graduation Date -->
+      <section class="card">
+        <h2>Set Upcoming Graduation</h2>
+        <form method="POST" action="{{ url_for('manage_graduation') }}">
+          <label for="graduation_date">Graduation Date:</label>
+          <input type="date" name="graduation_date" required>
+          <button type="submit" class="submit-btn">Save Date</button>
+        </form>
+      </section>
+
+      <!-- Upload Media -->
+      <section class="card">
+        <h2>Add Graduation Media</h2>
+        <form method="POST" action="{{ url_for('manage_graduation') }}">
+          <input type="text" name="media_title" placeholder="Media Title" required>
+          <input type="url" name="media_link" placeholder="Media Link (YouTube, Drive, etc.)" required>
+          <button type="submit" class="submit-btn">Add Media</button>
+        </form>
+      </section>
+
+      <!-- View Existing Media -->
+      <section class="card">
+        <h2>Uploaded Media</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for media in graduation_info if media.media_link %}
+              <tr>
+                <td>{{ media.media_title }}</td>
+                <td><a href="{{ media.media_link }}" target="_blank">View</a></td>
+              </tr>
+            {% else %}
+              <tr><td colspan="2" style="text-align:center;">No media uploaded.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+
+    </main>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Predictive Analytics Lab</p>
+  </footer>
+
+</body>
+</html>

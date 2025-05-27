@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='pal.png') }}">
+  <title>Manage Resources</title>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+  <style>
+  body {  
+      font-family: 'Public Sans', sans-serif;  
+      background-color: #f7f9fc;  
+      margin: 0;  
+      display: flex;  
+      flex-direction: column;  
+      min-height: 100vh; /* Keep footer at bottom */  
+    }  
+    header {  
+      background-color: #c0392b;  
+      color: white;  
+      padding: 20px 30px;  
+      display: flex;  
+      justify-content: space-between;  
+      align-items: center;  
+    }  
+    nav a {  
+      color: white;  
+      text-decoration: none;  
+      margin-left: 20px;  
+      font-weight: bold;  
+    }  
+
+    /* Main container as flex for side-by-side layout */  
+    main {  
+      flex: 1; /* Fill remaining space */  
+      display: flex;  
+      gap: 20px;  
+      padding: 40px 20px;  
+      flex-wrap: wrap; /* Responsive wrapping */  
+    }  
+
+    /* Style for each section */  
+    section {  
+      background-color: #fff;  
+      padding: 20px;  
+      border-radius: 8px;  
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);  
+      flex: 1;  
+      min-width: 300px;  
+      display: flex;  
+      flex-direction: column;  
+    }  
+
+    h2 {  
+      margin-top: 0;  
+      margin-bottom: 15px;  
+      color: #c0392b;  
+    }  
+
+    /* Form styling */  
+    form input, form select {  
+      width: 100%;  
+      padding: 10px;  
+      margin-top: 10px;  
+      margin-bottom: 15px;  
+      border-radius: 6px;  
+      border: 1px solid #ccc;  
+      font-size: 1rem;  
+    }  
+
+    .submit-btn {  
+      background-color: #c0392b;  
+      color: white;  
+      padding: 12px 20px;  
+      border: none;  
+      border-radius: 8px;  
+      cursor: pointer;  
+      font-weight: bold;  
+    }  
+
+    /* Table styles */  
+    table {  
+      width: 100%;  
+      border-collapse: collapse;  
+      margin-top: 15px;  
+    }  
+    th, td {  
+      padding: 12px;  
+      border-bottom: 1px solid #ddd;  
+      text-align: left;  
+    }  
+    th {  
+      color: #c0392b;  
+    }  
+    .delete-btn {  
+      background-color: #e74c3c;  
+      color: white;  
+      border: none;  
+      padding: 6px 12px;  
+      border-radius: 5px;  
+      cursor: pointer;  
+    }  
+    /* For aligning action buttons side by side in resource list */  
+    .actions {  
+      display: flex;  
+      align-items: center;  
+      gap: 8px;  
+    }  
+    /* Footer fixed at bottom using flexbox */  
+    footer {  
+      text-align: center;  
+      padding: 20px;  
+      background: #f0f0f0;  
+    }  
+    /* Responsive adjustments for smaller screens */  
+    @media(max-width: 768px) {  
+      main {  
+        flex-direction: column;  
+      }  
+    }
+    </style>
+</head>
+<body>
+
+  <header>
+    <h1>Manage Resources</h1>
+    <nav>
+      <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('manage_students') }}">Students</a>
+      <a href="{{ url_for('admin_attendance') }}">Attendance</a>
+     <a href="{{ url_for('manage_graduation') }}">Graduation</a>
+      <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+  </header>
+
+  <main class="container">
+   <!-- Upload Form -->
+<section class="card">
+  <h2>Upload New Resource</h2>
+  <form method="POST" action="{{ url_for('manage_resources') }}">
+    <input type="text" name="title" placeholder="Resource Title" required />
+    <select name="type" required>
+      <option value="">Select Type</option>
+      <option value="Lecture Note">Lecture Note</option>
+      <option value="Video Tutorial">Video Tutorial</option>
+      <option value="Assignment">Assignment</option>
+      <option value="Reading Material">Reading Material</option>
+    </select>
+    <input type="url" name="link" placeholder="Resource Link (URL or File Link)" required />
+
+    <select name="course" required>
+      <option value="">Select Course</option>
+      {% for course in courses %}
+      <option value="{{ course }}">{{ course }}</option>
+      {% endfor %}
+    </select>
+
+    <input type="text" name="cohort" placeholder="Cohort (e.g. 25)" required />
+    <button type="submit" class="submit-btn">Upload</button>
+  </form>
+</section>
+
+<!-- Resource Table -->
+<section class="card">
+  <h2>Existing Resources</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Type</th>
+        <th>Course</th>
+        <th>Cohort</th>
+        <th>Link</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for res in resources %}
+      <tr>
+        <td>{{ res.title }}</td>
+        <td>{{ res.type }}</td>
+        <td>{{ res.course }}</td>
+        <td>{{ res.cohort }}</td>
+        <td><a href="{{ res.link }}" target="_blank">Open</a></td>
+        <td>
+          <form method="POST" action="{{ url_for('delete_resource', id=res.id) }}" onsubmit="return confirm('Delete this resource?');">
+            <button class="delete-btn" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+  </main>
+
+  <footer>
+    &copy; 2025 Predictive Analytics Lab
+  </footer>
+</body>
+</html>

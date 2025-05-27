@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="pal.png" style="border-radius: 100px;">
+  <title>Logging Out...</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    .logout-container {
+      text-align: center;
+      margin-top: 100px;
+    }
+    .logout-container h2 {
+      color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Student Portal</h1>
+  </header>
+
+  <div class="logout-container">
+    <h2>Logging you out...</h2>
+    <p>You’ll be redirected to the login page in 3 seconds.</p>
+    <p>If not, <a href="login.html">click here</a>.</p>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Predictive Analytics Lab</p>
+  </footer>
+
+  <script>
+    setTimeout(() => {
+      window.location.href = "login.html";
+    }, 3000);
+  </script>
+</body>
+</html>

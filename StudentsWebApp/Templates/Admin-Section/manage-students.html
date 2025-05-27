@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='pal.png') }}">
+  <title>Manage Students</title>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body {
+      font-family: 'Public Sans', sans-serif;
+      background-color: #f7f9fc;
+      margin: 0;
+    }
+
+    header {
+      background-color: #c0392b;
+      color: white;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 20px;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    .content {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+    }
+
+    .student-list, .add-student-form {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+    }
+
+    .student-list {
+      flex: 3;
+      overflow-x: auto;
+    }
+
+    .add-student-form {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h2 {
+      color: #c0392b;
+      margin-top: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    th {
+      background-color: #fafafa;
+      font-weight: bold;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .edit-btn, .delete-btn {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      color: white;
+      font-size: 0.9rem;
+    }
+
+    .edit-btn {
+      background-color: #2980b9;
+    }
+
+    .delete-btn {
+      background-color: #e74c3c;
+    }
+
+    input, select {
+      padding: 10px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      width: 100%;
+    }
+
+    .password-group {
+      position: relative;
+    }
+
+    .toggle-password {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: #999;
+    }
+
+    .submit-btn {
+      background-color: #c0392b;
+      color: white;
+      font-weight: bold;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 10px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: #f0f0f0;
+      font-size: 0.9rem;
+      margin-top: 40px;
+    }
+
+    .pagination {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .pagination a {
+      margin: 0 6px;
+      text-decoration: none;
+      color: #c0392b;
+      font-weight: bold;
+    }
+
+    .pagination a.active {
+      text-decoration: underline;
+    }
+
+    @media(max-width: 900px) {
+      .grid {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Manage Students</h1>
+  <nav>
+    <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('admin_attendance') }}">Attendance</a>
+    <a href="{{ url_for('manage_graduation') }}">Graduation</a>
+    <a href="{{ url_for('manage_resources') }}">Resources</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+  </nav>
+</header>
+
+<main class="content">
+  <div class="grid">
+    <!-- Student List -->
+    <div class="student-list">
+      <h2>All Students</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Course</th>
+            <th>Balance (KES)</th>
+            <th>Completion</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for student in students %}
+          <tr>
+            <td>{{ student.name }}</td>
+            <td>{{ student.email }}</td>
+            <td>{{ student.course }}</td>
+            <td>KES {{ '{:,.2f}'.format(student.fee_balance) }}</td>
+            <td>{{ student.completion_date.strftime('%Y-%m-%d') if student.completion_date else 'N/A' }}</td>
+            <td>{{ student.graduation_status or 'N/A' }}</td>
+            <td class="actions">
+              <a href="{{ url_for('edit_student', id=student.id) }}"><button class="edit-btn">Edit</button></a>
+              <form method="POST" action="{{ url_for('delete_student', id=student.id) }}" style="display:inline;">
+                <button class="delete-btn" onclick="return confirm('Are you sure?')">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div class="pagination">
+        {% for p in range(1, total_pages + 1) %}
+          <a href="{{ url_for('manage_students', page=p) }}" class="{% if current_page == p %}active{% endif %}">{{ p }}</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Add Student -->
+    <div class="add-student-form">
+      <h2>Add Student</h2>
+      <form method="POST" onsubmit="return validatePasswords();">
+        <input type="text" name="name" placeholder="Full Name" required />
+        <input type="email" name="email" placeholder="Email" required />
+        <select name="course" required>
+          <option value="">Select Course</option>
+          {% for course in courses %}
+            <option value="{{ course }}">{{ course }}</option>
+          {% endfor %}
+        </select>
+        <input type="text" name="cohort" placeholder="Cohort (e.g. 2024A)" required />
+        <input type="text" name="phone" placeholder="Phone Number" />
+
+        <div class="password-group">
+          <input type="password" id="password" name="password" placeholder="Password" required />
+          <i class="fa fa-eye toggle-password" onclick="togglePassword('password')"></i>
+        </div>
+        <div class="password-group">
+          <input type="password" id="confirm_password" placeholder="Confirm Password" required />
+          <i class="fa fa-eye toggle-password" onclick="togglePassword('confirm_password')"></i>
+        </div>
+
+        <input type="number" step="0.01" name="fee_expected" placeholder="Expected Fee" required />
+        <input type="number" step="0.01" name="fee_paid" placeholder="Fee Paid" required />
+        <input type="date" name="completion_date" required />
+        <select name="graduation_status" required>
+          <option value="">Select Status</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+
+        <input type="text" name="admission_number" placeholder="Admission Number" readonly value="Auto-generated" />
+        <button type="submit" class="submit-btn">Add Student</button>
+      </form>
+    </div>
+  </div>
+</main>
+
+<footer>
+  &copy; 2025 Predictive Analytics Lab
+</footer>
+
+<script>
+  function togglePassword(id) {
+    const input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+  }
+
+  function validatePasswords() {
+    const pw1 = document.getElementById('password').value.trim();
+    const pw2 = document.getElementById('confirm_password').value.trim();
+    if (pw1 !== pw2) {
+      alert("❌ Passwords do not match.");
+      return false;
+    }
+    if (pw1.length < 6) {
+      alert("⚠️ Password must be at least 6 characters.");
+      return false;
+    }
+    return true;
+  }
+</script>
+
+</body>
+</html>

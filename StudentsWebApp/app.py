@@ -18,14 +18,9 @@ except Exception:
 
 
 app = Flask(__name__)
-
-# Railway MySQL configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = (
-    f"mysql+pymysql://{os.getenv('MYSQL_USER')}:{os.getenv('MYSQL_PASSWORD')}"
-    f"@{os.getenv('MYSQL_HOST')}:{os.getenv('MYSQL_PORT')}/{os.getenv('MYSQL_DATABASE')}"
-)
+app.secret_key = 'Treplex@2025'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:@localhost/student_portal'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 db = SQLAlchemy(app)
 
 COURSES = {

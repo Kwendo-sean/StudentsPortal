@@ -9,7 +9,12 @@ import random
 from dateutil.parser import parse
 import math
 import os
+db_user = os.getenv("DB_USER", "root")
+db_pass = os.getenv("DB_PASSWORD", "")
+db_host = os.getenv("DB_HOST", "localhost")
+db_name = os.getenv("DB_NAME", "student_portal")
 
+app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+mysqlconnector://{db_user}:{db_pass}@{db_host}/{db_name}"
 
 try:
     gpt_pipeline = pipeline("text2text-generation", model="google/flan-t5-small")
@@ -19,7 +24,6 @@ except Exception:
 
 app = Flask(__name__)
 app.secret_key = 'Treplex@2025'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:@localhost/student_portal'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 

@@ -5,12 +5,68 @@
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='pal.png') }}">
   <title>Admin Login</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+  <style>
+    /* Styles for flashed messages */
+    .alert {
+        padding: 10px; 
+        margin-bottom: 10px; 
+        border: 1px solid transparent; 
+        border-radius: 4px;
+    }
+    .alert-success {
+        color: #155724;
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+    .alert-error { /* For 'error' or default Flask error messages */
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+    .alert-danger { /* Alias for error, if category 'danger' is used */
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+    .alert-info {
+        color: #0c5460;
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+    }
+    .alert-warning {
+        color: #856404;
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+    }
+  </style>
 </head>
 <body>
   <main class="container" style="max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.1);">
     <h2 style="color: #c0392b;">Admin Login</h2>
     
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flashed-messages" style="list-style: none; padding: 0; margin: 0 0 1em 0;">
+        {% for category, message in messages %}
+          {# Map 'message' category (default from some extensions like Flask-Login) to 'error' for styling #}
+          {% set alert_category = 'error' if category == 'message' else category if category else 'info' %}
+          {% if category == 'error' or message == error %} {# Attempt to catch direct error variable if it's also flashed #}
+            {% set alert_category = 'error' %}
+          {% endif %}
+          <div class="alert alert-{{ alert_category }}" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+        </div>
+      {% elif error %} {# Fallback for direct error variable if not flashed #}
+        <div class="alert alert-error" role="alert">
+            {{ error }}
+        </div>
+      {% endif %}
+    {% endwith %}
+
     <form method="POST" action="{{ url_for('admin_login') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <div class="form-group">
         <input type="email" name="email" placeholder="Email" value="{{ request.form.email }}" required style="width:100%;padding:10px;margin:10px 0;">
       </div>
@@ -31,19 +87,6 @@ function toggleAdminPassword() {
       <button type="submit" class="submit-btn" style="width:100%;padding:12px;background:#c0392b;color:white;border:none;border-radius:6px;">Login</button>
     </form>
 
-    {% if error %}
-      <p style="color:red;">{{ error }}</p>
-    {% endif %}
-
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul style="color: red;">
-          {% for message in messages %}
-            <li>{{ message }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
   </main>
 </body>
 </html>

@@ -108,6 +108,33 @@
       color: #e74c3c;
       font-weight: bold;
     }
+    /* Styles for flashed messages */
+    .alert {
+        padding: 10px; 
+        margin-bottom: 10px; 
+        border: 1px solid transparent; 
+        border-radius: 4px;
+    }
+    .alert-success { /* Example: Green for success */
+        color: #155724;
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+    .alert-error { /* Example: Red for error */
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+    .alert-info { /* Example: Blue for info */
+        color: #0c5460;
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+    }
+    .alert-warning { /* Example: Yellow for warning */
+        color: #856404;
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+    }
     @media(max-width: 768px) {
       main {
         padding: 1rem;
@@ -138,6 +165,18 @@
   </header>
 
   <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flashed-messages" style="list-style: none; padding: 0; margin: 1em 0;">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category if category else 'info' }}" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
     <div class="flex-container">
 
       <!-- Course and Cohort Filtering Form -->
@@ -167,9 +206,10 @@
           {% endif %}
         </form>
 
-        {% if students %}
+        {% if students_for_dropdown or filtered_students %} {# Changed condition to ensure form shows if students are available #}
         <!-- Attendance Form -->
-        <form method="POST" action="{{ url_for('admin_attendance') }}">
+        <form method="POST" action="{{ url_for('admin_attendance', course=selected_course, cohort=selected_cohort) }}"> {# Added params to action #}
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <input type="hidden" name="course" value="{{ selected_course }}">
           <input type="hidden" name="cohort" value="{{ selected_cohort }}">
 
@@ -177,15 +217,16 @@
             <label for="student_id">Student</label>
             <select name="student_id" required>
               <option value="">-- Select Student --</option>
-              {% for student in students %}
-                <option value="{{ student.id }}">{{ student.name }}</option>
+              {# Use filtered_students if available, otherwise students_for_dropdown #}
+              {% for student in (filtered_students if filtered_students else students_for_dropdown) %}
+                <option value="{{ student.id }}">{{ student.name }} ({{ student.admission_number }})</option>
               {% endfor %}
             </select>
           </div>
 
           <div class="form-group">
             <label for="date">Date</label>
-            <input type="date" name="date" required />
+            <input type="date" name="date" required value="{{ today_date }}"/> {# Default to today #}
           </div>
 
           <div class="form-group">
@@ -198,22 +239,31 @@
           </div>
 
           <div class="form-group">
-            <label for="next_class">Next Class Date/Time</label>
-            <input type="datetime-local" name="next_class" required />
+            <label for="next_class">Next Class Date/Time (Optional)</label>
+            <input type="datetime-local" name="next_class" />
           </div>
 
           <button type="submit" class="submit-btn">Save Attendance</button>
         </form>
+        {% elif selected_course and selected_cohort %}
+          <p>No students found for the selected course and cohort.</p>
+        {% elif selected_course %}
+          <p>Please select a cohort to see students.</p>
+        {% else %}
+          <p>Select a course and cohort to manage attendance.</p>
         {% endif %}
       </section>
 
       <!-- Attendance Records -->
       <section class="section">
         <h2>Recent Attendance Records</h2>
+        {% if attendance_records %}
         <table>
           <thead>
             <tr>
               <th>Student</th>
+              <th>Course</th>
+              <th>Cohort</th>
               <th>Date</th>
               <th>Status</th>
             </tr>
@@ -221,13 +271,18 @@
           <tbody>
             {% for record in attendance_records %}
             <tr>
-              <td>{{ record.student.name }}</td>
-              <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
+              <td>{{ record.student.name if record.student else 'N/A' }}</td>
+              <td>{{ record.student.course if record.student else 'N/A' }}</td>
+              <td>{{ record.student.cohort if record.student else 'N/A' }}</td>
+              <td>{{ record.date.strftime('%Y-%m-%d') if record.date else 'N/A' }}</td>
               <td class="{{ 'absent' if record.status == 'Absent' else 'present' }}">{{ record.status }}</td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
+        {% else %}
+        <p>No recent attendance records to display.</p>
+        {% endif %}
       </section>
 
     </div>

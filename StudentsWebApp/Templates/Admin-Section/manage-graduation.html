@@ -46,11 +46,17 @@
     }
 
     .dashboard {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      /* display: flex; */ /* Modified for flashed messages */
+      /* flex-wrap: wrap; */
+      /* justify-content: center; */
       gap: 30px;
       padding: 40px 20px;
+    }
+    .main-content-flex { /* New class for the flex layout of sections */
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 30px;
     }
 
     .card {
@@ -113,9 +119,41 @@
       background: #f0f0f0;
       font-size: 14px;
     }
+    /* Styles for flashed messages */
+    .alert {
+        padding: 10px; 
+        margin-bottom: 10px; 
+        border: 1px solid transparent; 
+        border-radius: 4px;
+    }
+    .alert-success {
+        color: #155724;
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+    .alert-error { /* For 'error' or default Flask error messages */
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+    .alert-danger { /* Alias for error, if category 'danger' is used */
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+    .alert-info {
+        color: #0c5460;
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+    }
+    .alert-warning {
+        color: #856404;
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+    }
 
     @media (max-width: 768px) {
-      .dashboard {
+      .main-content-flex { /* Adjusted for new class */
         flex-direction: column;
         align-items: center;
       }
@@ -139,7 +177,21 @@
     </header>
 
     <main class="dashboard">
-
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flashed-messages" style="list-style: none; padding: 0; margin: 0 0 1em 0;">
+          {% for category, message in messages %}
+            {# Map 'message' category from Flask-Login to 'error' for styling #}
+            {% set alert_category = 'error' if category == 'message' else category if category else 'info' %}
+            <div class="alert alert-{{ alert_category }}" role="alert">
+              {{ message }}
+            </div>
+          {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      
+      <div class="main-content-flex"> {# Wrapped sections in this new flex container #}
       <!-- Registered Students -->
       <section class="card">
         <h2>Registered for Graduation</h2>
@@ -174,6 +226,7 @@
       <section class="card">
         <h2>Mark as Graduated</h2>
         <form method="POST" action="{{ url_for('manage_graduation') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <label for="student_id">Select Student:</label>
           <select name="student_id" required>
             <option value="">-- Select Student --</option>
@@ -189,6 +242,7 @@
       <section class="card">
         <h2>Set Upcoming Graduation</h2>
         <form method="POST" action="{{ url_for('manage_graduation') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <label for="graduation_date">Graduation Date:</label>
           <input type="date" name="graduation_date" required>
           <button type="submit" class="submit-btn">Save Date</button>
@@ -199,6 +253,7 @@
       <section class="card">
         <h2>Add Graduation Media</h2>
         <form method="POST" action="{{ url_for('manage_graduation') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <input type="text" name="media_title" placeholder="Media Title" required>
           <input type="url" name="media_link" placeholder="Media Link (YouTube, Drive, etc.)" required>
           <button type="submit" class="submit-btn">Add Media</button>
@@ -216,18 +271,35 @@
             </tr>
           </thead>
           <tbody>
-            {% for media in graduation_info if media.media_link %}
+            {% for media_item in graduation_media %} {# Changed loop variable to avoid conflict #}
               <tr>
-                <td>{{ media.media_title }}</td>
-                <td><a href="{{ media.media_link }}" target="_blank">View</a></td>
+                <td>{{ media_item.media_title }}</td>
+                <td><a href="{{ media_item.media_link }}" target="_blank">View</a></td>
               </tr>
             {% else %}
               <tr><td colspan="2" style="text-align:center;">No media uploaded.</td></tr>
             {% endfor %}
           </tbody>
         </table>
+         <h2>Upcoming Graduation Events</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in graduation_events %}
+                <tr>
+                    <td>{{ event.graduation_date.strftime('%d %B, %Y') if event.graduation_date else 'N/A' }}</td>
+                </tr>
+                {% else %}
+                <tr><td style="text-align:center;">No upcoming graduation dates set.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
       </section>
-
+    </div> {# End main-content-flex #}
     </main>
   </div>
 

@@ -5,6 +5,129 @@
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='pal.png') }}">
   <title>Student Dashboard</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+  <style> /* Added alert styles here */
+    .alert {
+        padding: 10px; 
+        margin-bottom: 10px; 
+        border: 1px solid transparent; 
+        border-radius: 4px;
+    }
+    .alert-success {
+        color: #155724;
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+    .alert-error {
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+    .alert-info {
+        color: #0c5460;
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+    }
+    .alert-warning {
+        color: #856404;
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+    }
+    /* Preddy AI Assistant Styles */
+    #preddy-button {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: white;
+      padding: 14px 22px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      transition: all 0.25s ease;
+      border: none;
+    }
+
+    #preddy-button:hover {
+      transform: scale(1.08);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    #preddy-chat {
+      position: fixed;
+      bottom: 100px;
+      right: 24px;
+      width: 360px;
+      max-height: 550px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      border: 1px solid #ddd;
+    }
+
+    #preddy-chat.hidden {
+      display: none;
+    }
+
+    .preddy-header {
+      background: #b6382a;
+      color: #fff;
+      padding: 16px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      text-align: center;
+      border-bottom: 1px solid #a33025;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .preddy-messages {
+      padding: 14px;
+      flex-grow: 1;
+      overflow-y: auto;
+      font-size: 0.95rem;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .preddy-bubble {
+      background: #f4f4f4;
+      border-radius: 14px;
+      padding: 10px 14px;
+      max-width: 80%;
+      word-wrap: break-word;
+      line-height: 1.4;
+    }
+
+    .preddy-bubble.user {
+      align-self: flex-end;
+      background: #fde3cf;
+    }
+
+    .preddy-bubble.ai {
+      align-self: flex-start;
+      background: #fdf4dd;
+    }
+
+    #preddy-input {
+      border: none;
+      border-top: 1px solid #eee;
+      padding: 14px;
+      font-size: 1rem;
+      outline: none;
+      width: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: #fff;
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -19,6 +142,20 @@
       </ul>
     </nav>
   </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flashed-messages" style="list-style: none; padding: 1em; margin: 0;"> {# Adjusted padding/margin #}
+      {% for category, message in messages %}
+        {# Map 'message' category from Flask-Login to 'error' for styling #}
+        {% set alert_category = 'error' if category == 'message' else category if category else 'info' %}
+        <div class="alert alert-{{ alert_category }}" role="alert">
+          {{ message }}
+        </div>
+      {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
 
   <section class="profile">
     <img src="{{ url_for('static', filename='Blank Pfp.jpeg') }}" alt="Profile Photo" />
@@ -67,104 +204,6 @@
   <input id="preddy-input" type="text" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')sendPreddyMessage()">
 </div>
 
-<style>
-#preddy-button {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
-  color: white;
-  padding: 14px 22px;
-  border-radius: 999px;
-  font-weight: 600;
-  font-size: 15px;
-  cursor: pointer;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
-  transition: all 0.25s ease;
-  border: none;
-}
-
-#preddy-button:hover {
-  transform: scale(1.08);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
-}
-
-#preddy-chat {
-  position: fixed;
-  bottom: 100px;
-  right: 24px;
-  width: 360px;
-  max-height: 550px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 20px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  z-index: 1000;
-  backdrop-filter: blur(10px);
-  border: 1px solid #ddd;
-}
-
-#preddy-chat.hidden {
-  display: none;
-}
-
-.preddy-header {
-  background: #b6382a;
-  color: #fff;
-  padding: 16px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  text-align: center;
-  border-bottom: 1px solid #a33025;
-  font-family: 'Segoe UI', sans-serif;
-}
-
-.preddy-messages {
-  padding: 14px;
-  flex-grow: 1;
-  overflow-y: auto;
-  font-size: 0.95rem;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  font-family: 'Segoe UI', sans-serif;
-}
-
-.preddy-bubble {
-  background: #f4f4f4;
-  border-radius: 14px;
-  padding: 10px 14px;
-  max-width: 80%;
-  word-wrap: break-word;
-  line-height: 1.4;
-}
-
-.preddy-bubble.user {
-  align-self: flex-end;
-  background: #fde3cf;
-}
-
-.preddy-bubble.ai {
-  align-self: flex-start;
-  background: #fdf4dd;
-}
-
-#preddy-input {
-  border: none;
-  border-top: 1px solid #eee;
-  padding: 14px;
-  font-size: 1rem;
-  outline: none;
-  width: 100%;
-  font-family: 'Segoe UI', sans-serif;
-  background: #fff;
-}
-</style>
-
-
 <script>
 function togglePreddy() {
   const chat = document.getElementById('preddy-chat');
@@ -183,7 +222,7 @@ function sendPreddyMessage() {
 
   fetch("/ai-assistant", {
     method: "POST",
-    headers: {'Content-Type': 'application/json'},
+    headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}'}, // CSRF Token for AI Assistant
     body: JSON.stringify({ message })
   })
   .then(res => res.json())

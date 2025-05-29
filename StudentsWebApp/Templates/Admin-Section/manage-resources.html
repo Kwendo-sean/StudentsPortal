@@ -33,14 +33,19 @@
     /* Main container as flex for side-by-side layout */  
     main {  
       flex: 1; /* Fill remaining space */  
-      display: flex;  
+      /* display: flex; */ /* Removed to allow flashed messages to span full width initially */
       gap: 20px;  
       padding: 40px 20px;  
-      flex-wrap: wrap; /* Responsive wrapping */  
+      /* flex-wrap: wrap; */ /* Responsive wrapping */  
     }  
+    .main-content-flex { /* New class for the flex layout of sections */
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
 
     /* Style for each section */  
-    section {  
+    section.card {  /* Added .card to make it more specific */
       background-color: #fff;  
       padding: 20px;  
       border-radius: 8px;  
@@ -112,9 +117,36 @@
       padding: 20px;  
       background: #f0f0f0;  
     }  
+    /* Styles for flashed messages */
+    .alert {
+        padding: 10px; 
+        margin-bottom: 10px; 
+        border: 1px solid transparent; 
+        border-radius: 4px;
+    }
+    .alert-success {
+        color: #155724;
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+    .alert-error {
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+    .alert-info {
+        color: #0c5460;
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+    }
+    .alert-warning {
+        color: #856404;
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+    }
     /* Responsive adjustments for smaller screens */  
     @media(max-width: 768px) {  
-      main {  
+      .main-content-flex {  /* Adjusted for new class */
         flex-direction: column;  
       }  
     }
@@ -134,65 +166,80 @@
   </header>
 
   <main class="container">
-   <!-- Upload Form -->
-<section class="card">
-  <h2>Upload New Resource</h2>
-  <form method="POST" action="{{ url_for('manage_resources') }}">
-    <input type="text" name="title" placeholder="Resource Title" required />
-    <select name="type" required>
-      <option value="">Select Type</option>
-      <option value="Lecture Note">Lecture Note</option>
-      <option value="Video Tutorial">Video Tutorial</option>
-      <option value="Assignment">Assignment</option>
-      <option value="Reading Material">Reading Material</option>
-    </select>
-    <input type="url" name="link" placeholder="Resource Link (URL or File Link)" required />
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flashed-messages" style="list-style: none; padding: 0; margin: 0 0 1em 0;"> {# Adjusted margin #}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category if category else 'info' }}" role="alert"> {# Removed inline style, rely on CSS #}
+            {{ message }}
+          </div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    
+    <div class="main-content-flex"> {# Wrapped sections in this new flex container #}
+       <!-- Upload Form -->
+    <section class="card">
+      <h2>Upload New Resource</h2>
+      <form method="POST" action="{{ url_for('manage_resources') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input type="text" name="title" placeholder="Resource Title" required />
+        <select name="type" required>
+          <option value="">Select Type</option>
+          <option value="Lecture Note">Lecture Note</option>
+          <option value="Video Tutorial">Video Tutorial</option>
+          <option value="Assignment">Assignment</option>
+          <option value="Reading Material">Reading Material</option>
+        </select>
+        <input type="url" name="link" placeholder="Resource Link (URL or File Link)" required />
 
-    <select name="course" required>
-      <option value="">Select Course</option>
-      {% for course in courses %}
-      <option value="{{ course }}">{{ course }}</option>
-      {% endfor %}
-    </select>
+        <select name="course" required>
+          <option value="">Select Course</option>
+          {% for course in courses %}
+          <option value="{{ course }}">{{ course }}</option>
+          {% endfor %}
+        </select>
 
-    <input type="text" name="cohort" placeholder="Cohort (e.g. 25)" required />
-    <button type="submit" class="submit-btn">Upload</button>
-  </form>
-</section>
+        <input type="text" name="cohort" placeholder="Cohort (e.g. 25)" required />
+        <button type="submit" class="submit-btn">Upload</button>
+      </form>
+    </section>
 
-<!-- Resource Table -->
-<section class="card">
-  <h2>Existing Resources</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Title</th>
-        <th>Type</th>
-        <th>Course</th>
-        <th>Cohort</th>
-        <th>Link</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for res in resources %}
-      <tr>
-        <td>{{ res.title }}</td>
-        <td>{{ res.type }}</td>
-        <td>{{ res.course }}</td>
-        <td>{{ res.cohort }}</td>
-        <td><a href="{{ res.link }}" target="_blank">Open</a></td>
-        <td>
-          <form method="POST" action="{{ url_for('delete_resource', id=res.id) }}" onsubmit="return confirm('Delete this resource?');">
-            <button class="delete-btn" type="submit">Delete</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</section>
-
+    <!-- Resource Table -->
+    <section class="card">
+      <h2>Existing Resources</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Type</th>
+            <th>Course</th>
+            <th>Cohort</th>
+            <th>Link</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for res in resources %}
+          <tr>
+            <td>{{ res.title }}</td>
+            <td>{{ res.type }}</td>
+            <td>{{ res.course }}</td>
+            <td>{{ res.cohort }}</td>
+            <td><a href="{{ res.link }}" target="_blank">Open</a></td>
+            <td>
+              <form method="POST" action="{{ url_for('delete_resource', id=res.id) }}" onsubmit="return confirm('Delete this resource?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button class="delete-btn" type="submit">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </div> {# End of main-content-flex #}
   </main>
 
   <footer>
